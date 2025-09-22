@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmaFlow | Effortless Pharmacy Inventory Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            /* --- Sleek Light Theme --- */
+            --primary-color: #007bff;
+            --primary-color-darker: #0056b3;
+            --primary-color-rgb: 0, 123, 255;
+            --secondary-color: #5a6a85;
+            --bg-color: #f0f2f5;
+            --light-bg-color: #e4e9f0;
+            --text-color: #2c3e50;
+            --heading-color: #1c2833;
+            --border-color: #dadddf;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --success-color: #2ecc71;
+            --header-bg: #ffffff;
+            --card-bg: #ffffff;
+            --header-height: 70px;
+        }
+
+        /* --- Dark Mode Theme Variables --- */
+        body.dark-mode {
+            --primary-color: #957fef; /* NEW PURPLE */
+            --primary-color-darker: #7a68d1; /* NEW DARKER PURPLE */
+            --primary-color-rgb: 149, 127, 239; /* NEW PURPLE RGB */
+            --bg-color: #1a1a2e;
+            --light-bg-color: #16213e;
+            --card-bg: #1f284a;
+            --header-bg: #1f284a;
+            --text-color: #e0e1dd;
+            --heading-color: #ffffff;
+            --border-color: #2a3a64;
+            --secondary-color: #a7a9be;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+        .hidden { display: none !important; }
+
+        /* --- Landing Page Header/Navbar --- */
+        .header-wrapper {
+            position: sticky; top: 0; z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: saturate(180%) blur(10px);
+            -webkit-backdrop-filter: saturate(180%) blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            transition: box-shadow 0.2s ease, background-color 0.4s ease, border-bottom-color 0.4s ease;
+        }
+        body.dark-mode .header-wrapper {
+             background-color: rgba(31, 40, 74, 0.85);
+             border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; }
+        .header-brand { font-size: 1.8em; font-weight: bold; color: var(--primary-color); text-decoration: none; }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links a.nav-item { text-decoration: none; color: var(--secondary-color); font-weight: 500; padding: 5px 0; position: relative; transition: color 0.2s ease; }
+        .nav-links a.nav-item::after { content: ''; position: absolute; width: 0; height: 2px; bottom: -5px; left: 50%; transform: translateX(-50%); background-color: var(--primary-color); transition: width 0.3s ease; }
+        .nav-links a.nav-item:hover { color: var(--primary-color); }
+        .nav-links a.nav-item:hover::after { width: 100%; }
+
+        .btn { padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: 500; text-decoration: none; display: inline-block; transition: all 0.2s ease; }
+        .btn-primary { background-color: var(--primary-color); color: white; background-image: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color-darker) 100%); }
+        .btn:hover { box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.3); transform: translateY(-2px); }
+        
+        /* --- Hero Section --- */
+        .hero { display: flex; align-items: center; padding: 80px 0; gap: 40px; }
+        .hero-text { flex: 1; }
+        .hero-text h1 { font-size: 3em; color: var(--heading-color); margin-bottom: 20px; line-height: 1.2; }
+        .hero-text p { font-size: 1.2em; color: var(--secondary-color); margin-bottom: 30px; }
+        .hero-svg { flex: 1; max-width: 500px; min-height: 400px; }
+        
+        /* --- Features Section --- */
+        .features { padding: 80px 0; background-color: var(--light-bg-color); text-align: center; transition: background-color 0.4s ease; }
+        .section-title { font-size: 2.5em; color: var(--heading-color); margin-bottom: 10px; }
+        .section-subtitle { font-size: 1.1em; color: var(--secondary-color); max-width: 600px; margin: 0 auto 50px auto; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; text-align: left; }
+        .feature-card { background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02); transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.4s ease; }
+        .feature-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+        .feature-card h3 { font-size: 1.4em; color: var(--heading-color); margin-top: 0; }
+        .feature-card p { color: var(--secondary-color); }
+
+        /* --- CTA Section & Footer --- */
+        .cta-section { background-image: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color-darker) 100%); color: white; padding: 60px 0; text-align: center; }
+        .cta-section h2 { font-size: 2.2em; margin-top: 0; }
+        .cta-section .btn { background-color: white; color: var(--primary-color); background-image: none; }
+        .footer { padding: 20px 0; text-align: center; font-size: 0.9em; color: var(--secondary-color); }
+        
+        /* --- SVG Animations --- */
+        .screen-float { animation: float 6s ease-in-out infinite; } .card-float { animation: float 8s ease-in-out infinite reverse 0.5s; } .icon-float { animation: float 7s ease-in-out infinite 1s; } .blob1 { animation: pulse 10s ease-in-out infinite; } .blob2 { animation: pulse 12s ease-in-out infinite reverse; } .bar1, .bar2, .bar3 { transform-origin: bottom; animation: grow 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; transform: scaleY(0); } .bar1 { animation-delay: 0.8s; } .bar2 { animation-delay: 1s; } .bar3 { animation-delay: 1.2s; } .line-draw { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw 2s ease-out 1.3s forwards; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } } @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } } @keyframes grow { to { transform: scaleY(1); } } @keyframes draw { to { stroke-dashoffset: 0; } }
+
+        /* --- UPDATED: Login & App Styles --- */
+        #login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; padding: 20px; box-sizing: border-box;}
+        .login-wrapper { display: flex; max-width: 900px; width: 100%; background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid var(--border-color); transition: background-color 0.4s ease, border-color 0.4s ease; }
+        .login-illustration { flex: 1; padding: 40px; background-color: var(--light-bg-color); display: flex; align-items: center; justify-content: center; transition: background-color 0.4s ease;}
+        .login-illustration svg { max-width: 100%; height: auto; }
+        .login-box { flex: 1; padding: 40px; display: flex; flex-direction: column; justify-content: center; }
+        .login-box h2 { margin-top: 0; margin-bottom: 25px; color: var(--heading-color); } .login-box .form-group { text-align: left; } .login-box .btn { width: 100%; margin-top: 10px; }
+        #login-error { color: var(--danger-color); margin-top: 15px; font-size: 0.9em; }
+
+        .app-wrapper .header { padding: 0 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; height: var(--header-height); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.05); background-color: var(--header-bg); transition: background-color 0.4s ease, border-color 0.4s ease; }
+        .app-wrapper .header-left, .app-wrapper .header-right { display: flex; align-items: center; gap: 20px; }
+        .app-wrapper .header-brand { font-size: 1.6em; font-weight: bold; color: var(--primary-color); }
+        .main-nav { list-style: none; padding: 0; margin: 0; display: flex; gap: 10px; }
+        .main-nav li { padding: 10px 18px; cursor: pointer; border-radius: 6px; font-weight: 500; color: var(--secondary-color); transition: all 0.2s ease-in-out; }
+        .main-nav li:hover { background-color: var(--light-bg-color); color: var(--primary-color); transform: translateY(-2px); }
+        body.dark-mode .main-nav li:hover { background-color: #2a3a64; }
+        .main-nav li.active { background-color: var(--primary-color); color: white; box-shadow: 0 2px 5px rgba(var(--primary-color-rgb), 0.3); }
+        .main-nav li:active { transform: translateY(0); transition: transform 0.1s; }
+        .header-search input { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 5px; width: 250px; background-color: var(--bg-color); color: var(--text-color); transition: background-color 0.4s ease, border-color 0.4s ease; }
+        .header-profile { font-weight: bold; }
+        .main-container { width: 100%; background-color: var(--bg-color); transition: background-color 0.4s ease; }
+        .content { padding: 30px; }
+        .page { display: none; } .page.active { display: block; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .metric-card, .alerts-section, .actions-section { background-color: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-top: 20px; transition: background-color 0.4s ease, border-color 0.4s ease; }
+        .metric-card h3 { margin-top: 0; } .metric-card .value { font-size: 2.5em; font-weight: bold; color: var(--primary-color); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: var(--light-bg-color); transition: background-color 0.4s ease; } body.dark-mode th { background-color: #16213e; }
+        .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; } .status-ok { background-color: var(--success-color); } .status-low { background-color: var(--warning-color); } .status-expired { background-color: var(--danger-color); }
+        .category-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: 600; color: white; } .category-general { background-color: #6c757d; } .category-antibiotic { background-color: #17a2b8; } .category-controlled { background-color: #fd7e14; }
+        .app-wrapper .btn { padding: 10px 15px; margin-right: 10px; } .app-wrapper .btn:active { transform: translateY(1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); } .btn-danger { background-color: var(--danger-color); color: white; background-image: none; } .btn-secondary { background-color: var(--secondary-color); color: white; background-image: none;}
+        .modal { display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content { background-color: var(--card-bg); margin: 10% auto; padding: 20px; border: 1px solid var(--border-color); width: 80%; max-width: 500px; border-radius: 8px; transition: background-color 0.4s ease, border-color 0.4s ease; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; } .modal-header h2 { margin: 0; } .close-btn { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .form-group { margin-bottom: 15px; } .form-group label { display: block; margin-bottom: 5px; } .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--bg-color); color: var(--text-color); transition: background-color 0.4s ease; }
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+        .chart-container { background-color: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid var(--border-color); transition: background-color 0.4s ease, border-color 0.4s ease; }
+        
+        /* --- Disco Theme Switch --- */
+        .theme-switch-wrapper { display: flex; align-items: center; }
+        .theme-switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 0 2px rgba(0,0,0,0.4); }
+        input:checked + .slider { background: linear-gradient(45deg, #ff00ff, #00ffff, #ff00ff, #ffff00); background-size: 200% 200%; animation: disco-bg 2s linear infinite; }
+        @keyframes disco-bg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        input:checked + .slider:before { transform: translateX(26px); background-color: #f4f4f4; box-shadow: 0 0 10px #fff, 0 0 20px #fff; }
+
+        /* --- Settings Page Styles --- */
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .settings-card { background-color: var(--card-bg); padding: 25px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .settings-card h3 { margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px; }
+        .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .settings-row label { font-weight: 500; }
+        .profile-field { background-color: var(--light-bg-color); padding: 8px 12px; border-radius: 6px; color: var(--secondary-color); font-size: 0.9em; }
+
+        @media (max-width: 992px) {
+            .login-illustration { display: none; }
+        }
+        @media (max-width: 768px) {
+            .hero { flex-direction: column; text-align: center; } .hero-text h1 { font-size: 2.5em; } .nav-links { gap: 10px; } .nav-links a.nav-item { display: none; } .app-wrapper .header-search { display: none; } .app-wrapper .header { padding: 0 15px; } .charts-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Landing Page Section -->
+    <div id="landingPage">
+        <header class="header-wrapper">
+            <div class="container">
+                <div class="header">
+                     <a href="#" class="header-brand">PharmaFlow</a>
+                     <nav class="nav-links">
+                         <a href="#" class="nav-item">Home</a>
+                         <a href="#features" class="nav-item">Features</a>
+                         <a href="#" class="nav-item launch-app-btn">Login</a>
+                         <a href="#" class="btn btn-primary launch-app-btn">Launch App</a>
+                         <div class="theme-switch-wrapper">
+                            <label class="theme-switch" for="landing-theme-toggle">
+                                <input type="checkbox" id="landing-theme-toggle" class="theme-toggle-checkbox" />
+                                <div class="slider round"></div>
+                            </label>
+                        </div>
+                     </nav>
+                </div>
+            </div>
+        </header>
+        <main>
+            <section class="hero">
+                <div class="container hero">
+                    <div class="hero-text">
+                        <h1>Effortless Pharmacy Management. Streamlined for Success.</h1>
+                        <p>PharmaFlow is the all-in-one solution designed for pharmacies, clinics, and medical professionals to manage inventory with precision, prevent waste, and gain valuable insights.</p>
+                        <a href="#" class="btn btn-primary launch-app-btn">Get Started for Free</a>
+                    </div>
+                    <div class="hero-svg">
+                         <svg width="100%" height="100%" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+                            <defs><filter id="glow"><feGaussianBlur stdDeviation="3.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="shadow"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#007bff" flood-opacity="0.2"/></filter><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:rgb(0,123,255);stop-opacity:1" /><stop offset="100%" style="stop-color:rgb(0,80,200);stop-opacity:1" /></linearGradient></defs>
+                            <circle cx="100" cy="300" r="150" fill="var(--primary-color)" opacity="0.1" class="blob1"/><circle cx="400" cy="100" r="120" fill="#28a745" opacity="0.1" class="blob2"/>
+                            <g class="screen-float"><rect x="100" y="50" width="300" height="220" rx="20" fill="var(--card-bg)" filter="url(#shadow)"/><rect x="115" y="65" width="40" height="8" rx="4" fill="#e9ecef"/><circle cx="370" cy="70" r="8" fill="#e9ecef"/><g><rect x="130" y="180" width="25" height="50" rx="3" fill="#ffc107" class="bar1"/><rect x="165" y="150" width="25" height="80" rx="3" fill="#28a745" class="bar2"/><rect x="200" y="170" width="25" height="60" rx="3" fill="#007bff" class="bar3"/></g><rect x="250" y="110" width="120" height="8" rx="4" fill="#e9ecef"/><rect x="250" y="130" width="90" height="8" rx="4" fill="#f1f3f5"/><path d="M 250 230 C 270 190, 310 190, 330 210 S 370 230, 390 200" stroke="#dc3545" stroke-width="3" fill="none" stroke-linecap="round" class="line-draw"/></g>
+                            <g class="card-float"><rect x="20" y="180" width="160" height="100" rx="15" fill="var(--card-bg)" filter="url(#shadow)"/><circle cx="45" cy="205" r="12" fill="url(#grad1)"/><rect x="70" y="201" width="80" height="8" rx="4" fill="#e9ecef"/><rect x="45" y="235" width="110" height="6" rx="3" fill="#f1f3f5"/><rect x="45" y="250" width="90" height="6" rx="3" fill="#f1f3f5"/></g>
+                            <g class="icon-float" filter="url(#glow)"><path d="M380 50 L420 50 L420 90 L460 90 L460 130 L420 130 L420 170 L380 170 L380 130 L340 130 L340 90 L380 90 Z" fill="#28a745" /></g>
+                        </svg>
+                    </div>
+                </div>
+            </section>
+            <section class="features" id="features">
+                <div class="container">
+                    <h2 class="section-title">Everything You Need in One Place</h2>
+                    <p class="section-subtitle">PharmaFlow simplifies complex tasks so you can focus on what matters most—your patients and your business.</p>
+                    <div class="features-grid">
+                        <div class="feature-card"><h3>Real-Time Inventory Tracking</h3><p>Know exactly what you have in stock at all times. Add new items and dispense drugs with a simple, intuitive interface.</p></div>
+                        <div class="feature-card"><h3>Smart Expiry & Stock Alerts</h3><p>Receive automatic alerts for medicines that are nearing expiry or running low, helping you reduce waste and prevent stockouts.</p></div>
+                        <div class="feature-card"><h3>Insightful Analytics & Reports</h3><p>Visualize your stock levels and sales trends with interactive charts. Generate comprehensive PDF reports for auditing and analysis in one click.</p></div>
+                        <div class="feature-card"><h3>Simple & Secure Operations</h3><p>A clean, user-friendly dashboard makes management easy. Secure login ensures your sensitive inventory data is always protected.</p></div>
+                    </div>
+                </div>
+            </section>
+            <section class="cta-section">
+                <div class="container">
+                    <h2>Ready to Take Control of Your Inventory?</h2>
+                    <p>Start managing your pharmacy more efficiently today.</p>
+                    <a href="#" class="btn launch-app-btn">Launch PharmaFlow Now</a>
+                </div>
+            </section>
+        </main>
+        <footer class="footer">
+            <div class="container"><p>&copy; 2025 PharmaFlow. All rights reserved. Simplifying Pharmaceutical Management.</p></div>
+        </footer>
+    </div>
+    
+    <!-- Login Container (Initially Hidden) -->
+    <div id="login-container" class="hidden">
+        <div class="login-wrapper">
+            <div class="login-illustration">
+                <svg width="100%" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color: var(--primary-color);" />
+                            <stop offset="100%" style="stop-color: var(--primary-color-darker);" />
+                        </linearGradient>
+                         <style>
+                            .shield-path { fill: url(#shieldGradient); transition: fill 0.4s ease;}
+                            .plus-sign { fill: var(--bg-color); transition: fill 0.4s ease;}
+                         </style>
+                    </defs>
+                    <g transform="translate(250, 250)">
+                        <path class="shield-path" d="M0,-200 L180,-100 L180,100 C180,180 0,250 0,250 C0,250 -180,180 -180,100 L-180,-100 Z" />
+                        <path class="plus-sign" d="M-30,-80 L30,-80 L30,-30 L80,-30 L80,30 L30,30 L30,80 L-30,80 L-30,30 L-80,30 L-80,-30 L-30,-30 Z" />
+                    </g>
+                </svg>
+            </div>
+            <div class="login-box">
+                <h2>PharmaFlow Login</h2>
+                <form id="loginForm">
+                    <div class="form-group"><label for="username">Username</label><input type="text" id="username" value="city.pharmacy" required></div>
+                    <div class="form-group"><label for="password">Password</label><input type="password" id="password" value="password123" required></div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <p id="login-error" class="hidden">Invalid username or password.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Wrapper (Initially Hidden) -->
+    <div class="app-wrapper hidden" id="appWrapper">
+        <div class="header">
+            <div class="header-left">
+                <div class="header-brand">PharmaFlow</div>
+                <ul class="main-nav" id="mainNav">
+                    <li class="active" data-page="dashboard"> Dashboard </li>
+                    <li data-page="inventory"> Inventory </li>
+                    <li data-page="reports"> Reports </li>
+                    <li data-page="settings"> Settings </li>
+                </ul>
+            </div>
+            <div class="header-right">
+                <div class="header-search"><input type="text" id="searchInput" placeholder="Search by drug name..."></div>
+                <div class="header-profile" id="userProfileName">City Pharmacy</div>
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="app-theme-toggle">
+                        <input type="checkbox" id="app-theme-toggle" class="theme-toggle-checkbox" />
+                        <div class="slider round"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="main-container">
+            <div class="content">
+                <div id="dashboard" class="page active">
+                    <h2>Good Morning! <span style="font-weight:normal; font-size: 0.8em;" id="currentDate"></span></h2>
+                    <div class="dashboard-grid">
+                        <div class="metric-card"><h3>Total Items in Stock</h3><div class="value" id="totalItems">0</div></div>
+                        <div class="metric-card"><h3>Inventory Value</h3><div class="value" id="inventoryValue">₹0</div></div>
+                        <div class="metric-card"><h3>Nearing Expiry (60 days)</h3><div class="value" id="nearingExpiryCount">0</div></div>
+                        <div class="metric-card"><h3>Low Stock Items</h3><div class="value" id="lowStockCount">0</div></div>
+                    </div>
+                    <div class="actions-section">
+                        <h3>Quick Actions</h3>
+                        <button class="btn btn-primary" id="quickAddStockBtn">➕ Add New Stock</button>
+                        <button class="btn btn-secondary" onclick="document.querySelector('[data-page=inventory]').click()">➜ View Full Inventory</button>
+                    </div>
+                    <div class="alerts-section">
+                        <h3>Critical Alerts</h3>
+                        <table id="alertsTable"><thead><tr><th>Alert Type</th><th>Drug Name</th><th>Details</th></tr></thead><tbody></tbody></table>
+                    </div>
+                </div>
+                <div id="inventory" class="page">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2>Full Inventory</h2><button class="btn btn-primary" id="inventoryAddStockBtn">➕ Add Stock</button>
+                    </div>
+                    <table id="inventoryTable">
+                        <thead><tr><th>Status</th><th>Drug Name</th><th>Category</th><th>Batch No.</th><th>Expiry Date</th><th>Qty on Hand</th><th>Actions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="reports" class="page">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                         <h2>Reports</h2><button class="btn btn-primary" id="generatePdfBtn">📄 Generate PDF Report</button>
+                    </div>
+                    <p>Visual overview of current inventory levels and historical consumption patterns.</p>
+                    <div class="charts-grid">
+                        <div class="chart-container"><h3>Current Stock Levels by Drug</h3><canvas id="stockLevelsChart"></canvas></div>
+                        <div class="chart-container"><h3>Consumption Trend (Last 6 Months)</h3><canvas id="consumptionTrendChart"></canvas></div>
+                    </div>
+                </div>
+                <div id="settings" class="page">
+                    <h2>Application Settings</h2>
+                    <div class="settings-grid">
+                        <div class="settings-card">
+                            <h3>User Profile</h3>
+                            <div class="settings-row">
+                                <label>Username</label>
+                                <span class="profile-field" id="profileUsername">city.pharmacy</span>
+                            </div>
+                            <div class="settings-row">
+                                <label>Role</label>
+                                <span class="profile-field">Administrator</span>
+                            </div>
+                             <div class="settings-row">
+                                <label>Last Login</label>
+                                <span class="profile-field" id="profileLastLogin"></span>
+                            </div>
+                        </div>
+                        <div class="settings-card">
+                            <h3>Notification Preferences</h3>
+                            <div class="settings-row">
+                                <label for="lowStockToggle">Low Stock Alerts</label>
+                                <label class="theme-switch">
+                                    <input type="checkbox" id="lowStockToggle" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                             <div class="settings-row">
+                                <label for="expiryToggle">Expiry Date Reminders</label>
+                                <label class="theme-switch">
+                                    <input type="checkbox" id="expiryToggle" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                         <div class="settings-card">
+                            <h3>Data Management</h3>
+                            <button id="exportInventoryBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">Export Inventory (CSV)</button>
+                            <button id="exportSalesBtn" class="btn btn-secondary" style="width: 100%;">Export Sales Data (CSV)</button>
+                        </div>
+                        <div class="settings-card">
+                            <h3>About PharmaFlow</h3>
+                            <div class="settings-row">
+                                <label>Version</label>
+                                <span>1.0.0</span>
+                            </div>
+                            <div class="settings-row">
+                                <label>Build Date</label>
+                                <span>2025-09-22</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="addStockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Add New Stock</h2><span class="close-btn" id="closeAddStockModal">&times;</span></div>
+            <div class="modal-body">
+                <form id="addStockForm">
+                    <div class="form-group"><label for="drugName">Drug Name</label><input type="text" id="drugName" required placeholder="e.g., Paracetamol 500mg"></div>
+                    <div class="form-group"><label for="drugCategory">Category</label><select id="drugCategory" required><option value="General">General</option><option value="Antibiotic">Antibiotic</option><option value="Controlled">Controlled (Schedule H/X)</option></select></div>
+                    <div class="form-group"><label for="batchNo">Batch Number</label><input type="text" id="batchNo" required placeholder="e.g., AB12345"></div>
+                    <div class="form-group"><label for="expiryDate">Expiry Date</label><input type="date" id="expiryDate" required></div>
+                    <div class="form-group"><label for="quantity">Quantity</label><input type="number" id="quantity" required min="1"></div>
+                    <div class="form-group"><label for="costPerUnit">Cost per Unit (₹)</label><input type="number" id="costPerUnit" required min="0" step="0.01"></div>
+                    <button type="submit" class="btn btn-primary">Add to Inventory</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="dispenseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2 id="dispenseModalTitle">Dispense Drug</h2><span class="close-btn" id="closeDispenseModal">&times;</span></div>
+            <div class="modal-body">
+                <form id="dispenseForm">
+                    <input type="hidden" id="dispenseItemId">
+                    <p>Current Stock: <strong id="dispenseCurrentStock">0</strong> units</p>
+                    <div class="form-group"><label for="dispenseQuantity">Quantity to Dispense</label><input type="number" id="dispenseQuantity" required min="1"></div>
+                    <button type="submit" class="btn btn-primary">Confirm Dispense</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const { jsPDF } = window.jspdf;
+
+        // --- THEME SWITCH LOGIC ---
+        const themeToggles = document.querySelectorAll('.theme-toggle-checkbox');
+        function applyTheme(isDarkMode) {
+             document.body.classList.toggle('dark-mode', isDarkMode);
+             themeToggles.forEach(toggle => toggle.checked = isDarkMode);
+             if (window.initializeApp && typeof window.generateAnalytics === 'function') {
+                window.generateAnalytics();
+             }
+        }
+        
+        themeToggles.forEach(toggle => {
+            toggle.addEventListener('change', () => {
+                applyTheme(toggle.checked);
+            });
+        });
+
+        // --- PAGE SECTIONS ---
+        const landingPage = document.getElementById('landingPage');
+        const loginContainer = document.getElementById('login-container');
+        const appWrapper = document.getElementById('appWrapper');
+        const launchButtons = document.querySelectorAll('.launch-app-btn');
+
+        launchButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                landingPage.classList.add('hidden');
+                loginContainer.classList.remove('hidden');
+            });
+        });
+
+        // --- LOGIN LOGIC ---
+        const users = [{ username: 'city.pharmacy', password: 'password123' }];
+        async function verifyLogin(username, password) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return !!users.find(u => u.username === username && u.password === password);
+        }
+
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('login-error');
+        const loginButton = loginForm.querySelector('button');
+
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            loginError.classList.add('hidden');
+            loginButton.textContent = 'Logging in...';
+            loginButton.disabled = true;
+
+            const isAuthenticated = await verifyLogin(
+                document.getElementById('username').value,
+                document.getElementById('password').value
+            );
+
+            if (isAuthenticated) {
+                loginContainer.classList.add('hidden');
+                appWrapper.classList.remove('hidden');
+                window.initializeApp();
+            } else {
+                loginError.classList.remove('hidden');
+                loginButton.textContent = 'Login';
+                loginButton.disabled = false;
+            }
+        });
+
+        // --- MAIN APPLICATION LOGIC ---
+        window.initializeApp = function() {
+            let inventoryData = [ { id: 1, name: 'Crocin 650mg', category: 'General', batch: 'C650A1', expiry: '2026-12-31', qty: 150, cost: 2.50 }, { id: 2, name: 'Aspirin 75mg', category: 'General', batch: 'AS75B2', expiry: '2025-10-28', qty: 8, cost: 0.50 }, { id: 3, name: 'Amoxicillin 500mg', category: 'Antibiotic', batch: 'AMX5C3', expiry: '2027-05-15', qty: 75, cost: 8.00 }, { id: 4, name: 'Betadine Ointment', category: 'General', batch: 'BETO4D', expiry: '2024-08-01', qty: 20, cost: 45.00 }, { id: 5, name: 'Alprazolam 0.5mg', category: 'Controlled', batch: 'AL05E5', expiry: '2026-11-30', qty: 45, cost: 3.20 }, { id: 6, name: 'Cetirizine 10mg', category: 'General', batch: 'CTZ10F6', expiry: '2025-09-15', qty: 250, cost: 1.10 } ];
+            let salesData = [];
+            const REORDER_LEVEL = 10;
+
+            const pages = document.querySelectorAll('.page');
+            const navLinks = document.querySelectorAll('.main-nav li');
+            const addStockModal = document.getElementById('addStockModal');
+            const dispenseModal = document.getElementById('dispenseModal');
+            const searchInput = document.getElementById('searchInput');
+
+            let stockChartInstance;
+            let consumptionChartInstance;
+            
+            const headerRight = appWrapper.querySelector('.header-right');
+            if (!headerRight.querySelector('.logout-btn')) {
+                const logoutButton = document.createElement('button');
+                logoutButton.textContent = 'Logout';
+                logoutButton.className = 'btn btn-danger logout-btn';
+                logoutButton.style.marginRight = '0';
+                logoutButton.addEventListener('click', () => location.reload());
+                headerRight.appendChild(logoutButton);
+            }
+
+            // --- CSV EXPORT FUNCTIONALITY ---
+            function exportToCsv(filename, rows) {
+                if (!rows || !rows.length) {
+                    return;
+                }
+                const separator = ',';
+                const keys = Object.keys(rows[0]);
+                const csvContent =
+                    keys.join(separator) +
+                    '\n' +
+                    rows.map(row => {
+                        return keys.map(k => {
+                            let cell = row[k] === null || row[k] === undefined ? '' : row[k];
+                            cell = cell instanceof Date 
+                                ? cell.toLocaleString()
+                                : cell.toString().replace(/"/g, '""');
+                            if (cell.search(/("|,|\n)/g) >= 0) {
+                                cell = `"${cell}"`;
+                            }
+                            return cell;
+                        }).join(separator);
+                    }).join('\n');
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', filename);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+
+
+            function renderInventoryTable(dataToRender = inventoryData) {
+                const tableBody = document.getElementById('inventoryTable').querySelector('tbody');
+                tableBody.innerHTML = ''; 
+                dataToRender.forEach(item => {
+                    const row = document.createElement('tr');
+                    const expiryDate = new Date(item.expiry);
+                    const today = new Date(); today.setHours(0,0,0,0);
+                    let status = 'ok';
+                    if (expiryDate < today) status = 'expired'; else if (item.qty < REORDER_LEVEL) status = 'low';
+                    const categoryClass = `category-${item.category.toLowerCase().split(' ')[0]}`;
+                    row.innerHTML = `<td><span class="status-dot status-${status}"></span></td><td>${item.name}</td><td><span class="category-badge ${categoryClass}">${item.category}</span></td><td>${item.batch}</td><td style="color: ${status === 'expired' ? 'var(--danger-color)' : 'inherit'}">${item.expiry}</td><td style="font-weight: bold; color: ${status === 'low' ? 'var(--warning-color)' : 'inherit'}">${item.qty}</td><td><button class="btn btn-primary dispense-btn" data-id="${item.id}">Dispense</button></td>`;
+                    tableBody.appendChild(row);
+                });
+                document.querySelectorAll('.dispense-btn').forEach(button => button.addEventListener('click', handleDispenseClick));
+            }
+            
+            function updateDashboard() {
+                const activeInventory = inventoryData.filter(item => new Date(item.expiry) >= new Date());
+                const totalItems = activeInventory.reduce((sum, item) => sum + item.qty, 0);
+                const inventoryValue = activeInventory.reduce((sum, item) => sum + (item.qty * item.cost), 0);
+                const today = new Date(); today.setHours(0,0,0,0);
+                const sixtyDaysFromNow = new Date(); sixtyDaysFromNow.setDate(today.getDate() + 60);
+                const nearingExpiryCount = activeInventory.filter(item => { const expiryDate = new Date(item.expiry); return expiryDate > today && expiryDate <= sixtyDaysFromNow; }).length;
+                const lowStockCount = activeInventory.filter(item => item.qty < REORDER_LEVEL).length;
+                document.getElementById('totalItems').textContent = totalItems;
+                document.getElementById('inventoryValue').textContent = `₹${inventoryValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                document.getElementById('nearingExpiryCount').textContent = nearingExpiryCount;
+                document.getElementById('lowStockCount').textContent = lowStockCount;
+                const alertsTableBody = document.getElementById('alertsTable').querySelector('tbody');
+                alertsTableBody.innerHTML = '';
+                let hasAlerts = false;
+                inventoryData.forEach(item => {
+                    const expiryDate = new Date(item.expiry);
+                    if (expiryDate < today) { hasAlerts = true; alertsTableBody.innerHTML += `<tr><td><span class="status-dot status-expired"></span> Expired</td><td>${item.name}</td><td>Expired on ${item.expiry}</td></tr>`; } 
+                    else if (item.qty < REORDER_LEVEL) { hasAlerts = true; alertsTableBody.innerHTML += `<tr><td><span class="status-dot status-low"></span> Low Stock</td><td>${item.name}</td><td>Only ${item.qty} units left</td></tr>`; } 
+                    else if (expiryDate <= sixtyDaysFromNow) { hasAlerts = true; alertsTableBody.innerHTML += `<tr><td><span class="status-dot status-low"></span> Nearing Expiry</td><td>${item.name}</td><td>Expires on ${item.expiry}</td></tr>`; }
+                });
+                if (!hasAlerts) { alertsTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;">No critical alerts. System is stable.</td></tr>`; }
+            }
+            
+            window.generateAnalytics = function() {
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                const textColor = isDarkMode ? '#e0e1dd' : '#333';
+                const primaryColorRGB = getComputedStyle(document.documentElement).getPropertyValue('--primary-color-rgb').trim();
+                
+                Chart.defaults.color = textColor;
+                
+                const stockLevelsCtx = document.getElementById('stockLevelsChart').getContext('2d');
+                const consumptionTrendCtx = document.getElementById('consumptionTrendChart').getContext('2d');
+                if (stockChartInstance) stockChartInstance.destroy(); if (consumptionChartInstance) consumptionChartInstance.destroy();
+                const activeInventory = inventoryData.filter(item => item.qty > 0);
+                stockChartInstance = new Chart(stockLevelsCtx, { type: 'bar', data: { labels: activeInventory.map(item => item.name), datasets: [{ label: 'Quantity on Hand', data: activeInventory.map(item => item.qty), backgroundColor: `rgba(${primaryColorRGB}, 0.6)`, borderColor: `rgba(${primaryColorRGB}, 1)`, borderWidth: 1 }] }, options: { scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { color: gridColor } } }, responsive: true, plugins: { legend: { display: false } } } });
+                const monthlyConsumption = {}; const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                salesData.forEach(sale => { const saleDate = new Date(sale.date); const monthKey = `${saleDate.getFullYear()}-${saleDate.getMonth()}`; if (!monthlyConsumption[monthKey]) monthlyConsumption[monthKey] = 0; monthlyConsumption[monthKey] += sale.quantity; });
+                const trendLabels = [], trendData = []; let today = new Date();
+                for (let i = 5; i >= 0; i--) { let date = new Date(today.getFullYear(), today.getMonth() - i, 1); let monthKey = `${date.getFullYear()}-${date.getMonth()}`; trendLabels.push(monthNames[date.getMonth()]); trendData.push(monthlyConsumption[monthKey] || 0); }
+                consumptionChartInstance = new Chart(consumptionTrendCtx, { type: 'line', data: { labels: trendLabels, datasets: [{ label: 'Total Units Dispensed', data: trendData, fill: false, borderColor: 'rgb(40, 167, 69)', tension: 0.1 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { color: gridColor } } } } });
+            }
+            
+            function generatePDFReport() { const doc = new jsPDF(); const tableData = inventoryData.map(item => [ item.name, item.category, item.batch, item.expiry, item.qty, `₹${item.cost.toFixed(2)}` ]); doc.text("PharmaFlow - Full Inventory Report", 14, 16); doc.setFontSize(10); doc.text(`Report generated on: ${new Date().toLocaleDateString()}`, 14, 22); doc.autoTable({ head: [['Drug Name', 'Category', 'Batch No.', 'Expiry', 'Quantity', 'Cost/Unit']], body: tableData, startY: 28, theme: 'grid' }); doc.save(`PharmaFlow_Inventory_Report_${new Date().toISOString().slice(0,10)}.pdf`); }
+            function navigateTo(pageId) { pages.forEach(page => page.classList.remove('active')); document.getElementById(pageId).classList.add('active'); navLinks.forEach(link => link.classList.toggle('active', link.dataset.page === pageId)); if (pageId === 'reports') generateAnalytics(); }
+            function openModal(modal) { modal.style.display = 'block'; }
+            function closeModal(modal) { modal.style.display = 'none'; }
+            function handleDispenseClick(event) { const itemId = parseInt(event.target.dataset.id); const item = inventoryData.find(i => i.id === itemId); if (!item) return; document.getElementById('dispenseModalTitle').textContent = `Dispense ${item.name}`; document.getElementById('dispenseCurrentStock').textContent = item.qty; document.getElementById('dispenseItemId').value = item.id; document.getElementById('dispenseQuantity').max = item.qty; document.getElementById('dispenseQuantity').value = 1; openModal(dispenseModal); }
+
+            // --- EVENT LISTENERS ---
+            navLinks.forEach(link => { link.addEventListener('click', () => navigateTo(link.dataset.page)); });
+            searchInput.addEventListener('input', (e) => { const searchTerm = e.target.value.toLowerCase(); if (searchTerm.length > 0) { const filteredData = inventoryData.filter(item => item.name.toLowerCase().includes(searchTerm) || item.batch.toLowerCase().includes(searchTerm)); renderInventoryTable(filteredData); } else { renderInventoryTable(); } });
+            document.getElementById('quickAddStockBtn').addEventListener('click', () => openModal(addStockModal)); document.getElementById('inventoryAddStockBtn').addEventListener('click', () => openModal(addStockModal));
+            document.getElementById('closeAddStockModal').addEventListener('click', () => closeModal(addStockModal)); document.getElementById('closeDispenseModal').addEventListener('click', () => closeModal(dispenseModal));
+            document.getElementById('generatePdfBtn').addEventListener('click', generatePDFReport);
+            document.getElementById('exportInventoryBtn').addEventListener('click', () => exportToCsv('pharmaflow_inventory.csv', inventoryData));
+            document.getElementById('exportSalesBtn').addEventListener('click', () => { if(salesData.length === 0) { alert('No sales data to export yet.'); return; } exportToCsv('pharmaflow_sales.csv', salesData); });
+            window.addEventListener('click', (event) => { if (event.target == addStockModal) closeModal(addStockModal); if (event.target == dispenseModal) closeModal(dispenseModal); });
+            document.getElementById('addStockForm').addEventListener('submit', function(event) { event.preventDefault(); const newItem = { id: Date.now(), name: document.getElementById('drugName').value, category: document.getElementById('drugCategory').value, batch: document.getElementById('batchNo').value, expiry: document.getElementById('expiryDate').value, qty: parseInt(document.getElementById('quantity').value), cost: parseFloat(document.getElementById('costPerUnit').value) }; inventoryData.push(newItem); renderInventoryTable(); updateDashboard(); this.reset(); closeModal(addStockModal); alert(`${newItem.name} added to inventory!`); });
+            document.getElementById('dispenseForm').addEventListener('submit', function(event) { event.preventDefault(); const itemId = parseInt(document.getElementById('dispenseItemId').value); const qtyToDispense = parseInt(document.getElementById('dispenseQuantity').value); const itemIndex = inventoryData.findIndex(i => i.id === itemId); if (itemIndex > -1 && qtyToDispense > 0 && qtyToDispense <= inventoryData[itemIndex].qty) { inventoryData[itemIndex].qty -= qtyToDispense; salesData.push({ itemId: itemId, name: inventoryData[itemIndex].name, quantity: qtyToDispense, date: new Date().toISOString() }); renderInventoryTable(); updateDashboard(); closeModal(dispenseModal); alert(`Dispensed ${qtyToDispense} units of ${inventoryData[itemIndex].name}.`); } else { alert('Error: Invalid quantity or item not found.'); } });
+
+            // --- INITIAL RENDER ---
+            document.getElementById('currentDate').textContent = `(${new Date().toDateString()})`;
+            document.getElementById('profileLastLogin').textContent = new Date().toLocaleString();
+            renderInventoryTable();
+            updateDashboard();
+        }
+    });
+</script>
+
+</body>
+</html>
+
+
